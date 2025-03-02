@@ -13,7 +13,7 @@ import (
 func check_market_open_status() bool {
 	//api_key := os.Getenv("apikey")
 	// url := "https://www.alphavantage.co/query?function=MARKET_STATUS&apikey="
-	response, err := http.Get("https://www.alphavantage.co/query?function=MARKET_STATUS&apikey=8KJQYTK635SZ0479")
+	response, err := http.Get("https://www.alphavantage.co/query?function=MARKET_STATUS&apikey=test_key")
 
 	if err != nil {
 		fmt.Print(err.Error())

@@ -34,8 +34,6 @@ func connectDB() (*sql.DB, error) {
         log.Fatalln(err);
     }
 
-    //defer db.Close();
-
     //Testing connection to db
     if err := db.Ping(); err != nil {
         log.Fatal(err)
@@ -48,7 +46,6 @@ func connectDB() (*sql.DB, error) {
 
 func main() {
 
-    //to find the .env file
     err := godotenv.Load("../../.env")
     if err != nil {
         log.Fatalf("Error loading to .env file: %s", err)

@@ -44,3 +44,51 @@ func get_market_data() {
 		os.Exit(1)
 	}
 }
+
+func get_company_overview(company_symbol string) string {
+	api_key := os.Getenv("apikey")
+	if api_key == ""{
+		log.Fatal("Api key not found in .env file")
+	}
+
+	if company_symbol == "" {
+		fmt.Println("Company symbol cannot be empty")
+		os.Exit(1)
+	}
+
+	baseUrl := "https://www.alphavantage.co/query"
+	queryParams_1 := "?function=OVERVIEW&symbol=" + company_symbol
+	queryParams_2 := "&apikey=" + api_key
+
+	fullUrl := baseUrl + queryParams_1 + queryParams_2
+	
+	response, err := http.Get(fullUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	return string(responseData)
+}
+
+
+func check_company_existence() {
+
+	var company_symbol string 
+
+	fmt.Println("Enter the symbol of the company to search: ")
+	fmt.Scanf("%s", &company_symbol)
+
+	if get_company_overview(company_symbol) != "" {
+		fmt.Println("Yes, the company exists")
+		os.Exit(0)
+	} else {
+		fmt.Println("No, the company does not exist")
+		os.Exit(1)
+	}
+}

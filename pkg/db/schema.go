@@ -1,9 +1,15 @@
-package main
+package db
 
 import (
 	"database/sql"
 	"fmt"
 )
+
+//for PG-admin
+type User struct {
+    Name string `db:"username"`
+    Email string `db:"email"`
+}
 
 func CreateTable(db *sql.DB) error {
 	fmt.Println("Enter the name of the table: ")
@@ -18,14 +24,6 @@ func CreateTable(db *sql.DB) error {
 	for i := 0; i < num_of_fields; i++ {
 		num_of_fields ++
 	}
-
-	// query := `
-	// CREATE TABLE demo_stock_info (
-	// 	id SERIAL PRIMARY KEY,
-	// 	stock_name varchar(30),
-	// 	stock_symbol varchar(10),
-	// 	closing_stock_price INT
-	// );`
 
 	query := fmt.Sprintf(`
 	CREATE TABLE %s (
@@ -45,7 +43,11 @@ func CreateTable(db *sql.DB) error {
 
 func perform_db_operations(user User) ([]User, error){
 
-	db, err := connectDB();
+	db, err := ConnectDB();
+	if err != nil {
+		fmt.Println("There were some internal problems")
+		//return err
+	}
 	//performing operations in db
 	// db_custom_users := User{};
 	rows, err := db.Query("SELECT username, email FROM USERS");

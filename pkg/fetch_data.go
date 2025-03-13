@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"fmt"
@@ -45,7 +45,7 @@ func get_market_data() {
 	}
 }
 
-func get_company_overview(company_symbol string) string {
+func Get_company_overview(company_symbol string) string {
 	api_key := os.Getenv("apikey")
 	if api_key == ""{
 		log.Fatal("Api key not found in .env file")
@@ -72,23 +72,27 @@ func get_company_overview(company_symbol string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	return string(responseData)
 }
 
 
-func check_company_existence() {
+func Check_company_existence() bool {
 
 	var company_symbol string 
 
 	fmt.Println("Enter the symbol of the company to search: ")
 	fmt.Scanf("%s", &company_symbol)
 
-	if get_company_overview(company_symbol) != "" {
-		fmt.Println("Yes, the company exists")
-		os.Exit(0)
-	} else {
+	if Get_company_overview(company_symbol) == "" || Get_company_overview(company_symbol) == "{}" {
 		fmt.Println("No, the company does not exist")
-		os.Exit(1)
+		return false
+	} else {
+		fmt.Println("Yes, the company exists")
+		return true
 	}
 }
+
+// func display_company_info() string {
+		
+// }

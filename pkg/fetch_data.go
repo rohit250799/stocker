@@ -8,7 +8,6 @@ import (
 	"os"
 )
 
-
 func check_all_market_open_status() bool {
 	api_key := os.Getenv("apikey")
 	if api_key == ""{
@@ -45,6 +44,18 @@ func get_market_data() {
 	}
 }
 
+func Check_company_existence(company_symbol string) bool {
+
+	if Get_company_overview(company_symbol) == "" || Get_company_overview(company_symbol) == "{}" {
+		fmt.Println("No, the company does not exist")
+		return false
+	} else {
+		fmt.Println("Yes, the company exists")
+		fmt.Println(Get_company_overview(company_symbol))
+		return true
+	}
+}
+
 func Get_company_overview(company_symbol string) string {
 	api_key := os.Getenv("apikey")
 	if api_key == ""{
@@ -74,23 +85,6 @@ func Get_company_overview(company_symbol string) string {
 	}
 
 	return string(responseData)
-}
-
-
-func Check_company_existence() bool {
-
-	var company_symbol string 
-
-	fmt.Println("Enter the symbol of the company to search: ")
-	fmt.Scanf("%s", &company_symbol)
-
-	if Get_company_overview(company_symbol) == "" || Get_company_overview(company_symbol) == "{}" {
-		fmt.Println("No, the company does not exist")
-		return false
-	} else {
-		fmt.Println("Yes, the company exists")
-		return true
-	}
 }
 
 // func display_company_info() string {

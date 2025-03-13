@@ -30,7 +30,7 @@ func main() {
         log.Fatalf("Error loading to .env file: %s", err)
     }
 
-    //connectDB()
+    //connect to db
 
     db, err := db.ConnectDB();
     if err != nil {
@@ -39,17 +39,14 @@ func main() {
     }
     defer db.Close()
 
-    //create table 
-    // err = CreateTable(db);
-    // if err != nil {
-    //     fmt.Println("Error while creating table", err);
-    //     return;
-    // }
-
     //get_market_data
 
-     if pkg.Check_company_existence()  {
-        pkg.Get_company_overview("AMD")
-     }  
+    var company_symbol string
+    fmt.Println("Enter the company symbol to use: ") 
+    fmt.Scan(&company_symbol)
+
+    if pkg.Check_company_existence(company_symbol)  {
+        pkg.Get_company_overview(company_symbol)
+    }  
 }
 

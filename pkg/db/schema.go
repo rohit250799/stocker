@@ -108,16 +108,22 @@ func Insert_Company_Overview_data(comp Company_overview) (int64, error) {
 	if error != nil {
 		log.Fatal(error)
 	}
-	result, err := db_connection_pointer.Exec("INSERT INTO demo_company_overview (symbol, assettype, stockname) VALUES ($1, $2, $3)", comp.Symbol, comp.AssetType, comp.Name)
+	//result, err := db_connection_pointer.Exec("INSERT INTO demo_company_overview (symbol, assettype, stockname) VALUES ($1, $2, $3)", comp.Symbol, comp.AssetType, comp.Name)
+
+	var id int64
+
+	err := db_connection_pointer.QueryRow("INSERT INTO demo_company_overview (symbol, assettype, stockname) VALUES ($1, $2, $3) RETURNING symbol", comp.Symbol, comp.AssetType, comp.Name)
+
 
 	if err != nil {
 		return 0, fmt.Errorf("addCompany_details: %v", err)
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("addCompany_details: %v", err)
-	}
+	// id, err := result.LastInsertId()
+	// if err != nil {
+	// 	return 0, fmt.Errorf("addCompany_details: %v", err)
+	// }
+	//return id, nil
 	return id, nil
 	
 }

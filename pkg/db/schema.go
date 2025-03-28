@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"go-stocker/pkg"
 	"log"
 )
 
@@ -73,26 +74,66 @@ type Demo_Company_overview struct {
 	Name                       string  `json:"Name"`
 }
 
-func CreateTable(db *sql.DB) error {
+func CreateCompanyOverviewTable(db *sql.DB) error {
 	fmt.Println("Enter the name of the table: ")
 
 	var get_table_name string
 	fmt.Scanln(&get_table_name)
 
-	fmt.Println("Enter the number of fields: ")
-	var num_of_fields int
-	fmt.Scanln(&num_of_fields)
-
-	for i := 0; i < num_of_fields; i++ {
-		num_of_fields ++
-	}
-
 	query := fmt.Sprintf(`
-	CREATE TABLE %s (
-		id SERIAL PRIMARY KEY,
-		stock_name varchar(30),
-		stock_symbol varchar(10),
-		closing_stock_price INT
+	CREATE TABLE IF NOT EXISTS %s (
+    Symbol TEXT PRIMARY KEY,
+    AssetType TEXT,
+    Name TEXT,
+    Description TEXT,
+    CIK TEXT,
+    Exchange TEXT,
+    Currency TEXT,
+    Country TEXT,
+    Sector TEXT,
+    Industry TEXT,
+    Address TEXT,
+    OfficialSite TEXT,
+    FiscalYearEnd TEXT,
+    LatestQuarter TEXT,
+    MarketCapitalization BIGINT,
+    EBITDA BIGINT,
+    PERatio DOUBLE PRECISION,
+    PEGRatio DOUBLE PRECISION,
+    BookValue DOUBLE PRECISION,
+    DividendPerShare TEXT,
+    DividendYield TEXT,
+    EPS DOUBLE PRECISION,
+    RevenuePerShareTTM DOUBLE PRECISION,
+    ProfitMargin DOUBLE PRECISION,
+    OperatingMarginTTM DOUBLE PRECISION,
+    ReturnOnAssetsTTM DOUBLE PRECISION,
+    ReturnOnEquityTTM DOUBLE PRECISION,
+    RevenueTTM BIGINT,
+    GrossProfitTTM BIGINT,
+    DilutedEPSTTM DOUBLE PRECISION,
+    QuarterlyEarningsGrowthYOY DOUBLE PRECISION,
+    QuarterlyRevenueGrowthYOY DOUBLE PRECISION,
+    AnalystTargetPrice DOUBLE PRECISION,
+    AnalystRatingStrongBuy INT,
+    AnalystRatingBuy INT,
+    AnalystRatingHold INT,
+    AnalystRatingSell INT,
+    AnalystRatingStrongSell INT,
+    TrailingPE DOUBLE PRECISION,
+    ForwardPE DOUBLE PRECISION,
+    PriceToSalesRatioTTM DOUBLE PRECISION,
+    PriceToBookRatio DOUBLE PRECISION,
+    EVToRevenue DOUBLE PRECISION,
+    EVToEBITDA DOUBLE PRECISION,
+    Beta DOUBLE PRECISION,
+    FiftyTwoWeekHigh DOUBLE PRECISION,
+    FiftyTwoWeekLow DOUBLE PRECISION,
+    FiftyDayMovingAverage DOUBLE PRECISION,
+    TwoHundredDayMovingAverage DOUBLE PRECISION,
+    SharesOutstanding BIGINT,
+    DividendDate TEXT,
+    ExDividendDate TEXT
 	);,`, get_table_name)
     
 	_, err := db.Exec(query);
@@ -103,27 +144,41 @@ func CreateTable(db *sql.DB) error {
 	return nil
 }
 
-func Insert_Company_Overview_data(comp Company_overview) (int64, error) {
+func Insert_Company_Overview_data(comp string) (string, error) {
 	db_connection_pointer, error := ConnectDB()
 	if error != nil {
 		log.Fatal(error)
 	}
-	//result, err := db_connection_pointer.Exec("INSERT INTO demo_company_overview (symbol, assettype, stockname) VALUES ($1, $2, $3)", comp.Symbol, comp.AssetType, comp.Name)
+	//var id int64
 
-	var id int64
+	company := pkg.Get_company_overview(comp)
 
-	err := db_connection_pointer.QueryRow("INSERT INTO demo_company_overview (symbol, assettype, stockname) VALUES ($1, $2, $3) RETURNING symbol", comp.Symbol, comp.AssetType, comp.Name)
+	query := `INSERT INTO company_overview (Symbol, AssetType, Name, Description, CIK, Exchange, Currency, Country, Sector, Industry,
+    Address, OfficialSite, FiscalYearEnd, LatestQuarter, MarketCapitalization, EBITDA, PERatio, PEGRatio, BookValue, DividendPerShare, DividendYield, EPS,RevenuePerShareTTM, ProfitMargin, OperatingMarginTTM, ReturnOnAssetsTTM, ReturnOnEquityTTM, RevenueTTM, GrossProfitTTM, DilutedEPSTTM, QuarterlyEarningsGrowthYOY, QuarterlyRevenueGrowthYOY, AnalystTargetPrice, AnalystRatingStrongBuy, AnalystRatingBuy, AnalystRatingHold, AnalystRatingSell, AnalystRatingStrongSell, TrailingPE, ForwardPE, PriceToSalesRatioTTM, PriceToBookRatio, EVToRevenue, EVToEBITDA, Beta, FiftyTwoWeekHigh, FiftyTwoWeekLow, FiftyDayMovingAverage, 
+    TwoHundredDayMovingAverage, SharesOutstanding, DividendDate, ExDividendDate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52) ON CONFLICT (Symbol) DO UPDATE SET MarketCapitalization = EXCLUDED.MarketCapitalization;`
+
+	//executing the query with struct values
+	_, err := db_connection_pointer.Exec(query,
+		company.Symbol, company.AssetType, company.Name, company.Description, company.CIK, company.Exchange, 
+		company.Currency, company.Country, company.Sector, company.Industry, company.Address, company.OfficialSite, 
+		company.FiscalYearEnd, company.LatestQuarter, company.MarketCapitalization, company.EBITDA, company.PERatio, 
+		company.PEGRatio, company.BookValue, company.DividendPerShare, company.DividendYield, company.EPS, 
+		company.RevenuePerShareTTM, company.ProfitMargin, company.OperatingMarginTTM, company.ReturnOnAssetsTTM, 
+		company.ReturnOnEquityTTM, company.RevenueTTM, company.GrossProfitTTM, company.DilutedEPSTTM, 
+		company.QuarterlyEarningsGrowthYOY, company.QuarterlyRevenueGrowthYOY, company.AnalystTargetPrice, 
+		company.AnalystRatingStrongBuy, company.AnalystRatingBuy, company.AnalystRatingHold, company.AnalystRatingSell, 
+		company.AnalystRatingStrongSell, company.TrailingPE, company.ForwardPE, company.PriceToSalesRatioTTM, 
+		company.PriceToBookRatio, company.EVToRevenue, company.EVToEBITDA, company.Beta, 
+		company.FiftyTwoWeekHigh, company.FiftyTwoWeekLow, company.FiftyDayMovingAverage, 
+		company.TwoHundredDayMovingAverage, company.SharesOutstanding, company.DividendDate, company.ExDividendDate,
+	)
 
 
 	if err != nil {
-		return 0, fmt.Errorf("addCompany_details: %v", err)
-	}
+		log.Fatalf("Failed to insert data %v", err)
+	}	
 
-	// id, err := result.LastInsertId()
-	// if err != nil {
-	// 	return 0, fmt.Errorf("addCompany_details: %v", err)
-	// }
-	//return id, nil
-	return id, nil
+	fmt.Println("Data inserted successfully!")
+	return company.Symbol, nil
 	
 }

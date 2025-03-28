@@ -1,1 +1,1 @@
-This project involves getting stock market insights by making API calls and storing the responses - to observe patterns in the market.
+An application to get stock market insights for fundamental and technical analysis.

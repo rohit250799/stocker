@@ -134,13 +134,38 @@ func CreateCompanyOverviewTable(db *sql.DB) error {
     SharesOutstanding BIGINT,
     DividendDate TEXT,
     ExDividendDate TEXT
-	);,`, get_table_name)
+	);`, get_table_name)
     
 	_, err := db.Exec(query);
 	if err != nil {
 		return err;
 	}
 	fmt.Println("Demo table has been created successfully");
+	return nil
+}
+
+func CreateTimeSeriesWeeklyTable(db *sql.DB) error {
+	fmt.Println("Enter the name of the table: ")
+	var getTableName string
+	fmt.Scanln(&getTableName)
+
+	query := fmt.Sprintf(`
+	CREATE TABLE IF NOT EXISTS %s (
+		id SERIAL PRIMARY KEY,
+		symbol TEXT NOT NULL,
+		date DATE NOT NULL,
+		open_price NUMERIC(10, 4),
+		high_price NUMERIC(10, 4),
+		low_price NUMERIC(10, 4),
+		close_price NUMERIC(10, 4),
+		volume BIGINT
+	);`, getTableName)
+
+	_, err := db.Exec(query);
+	if err != nil {
+		return err
+	}
+	fmt.Println("The table has been created")
 	return nil
 }
 

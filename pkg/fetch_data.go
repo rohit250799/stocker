@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+	"strconv"
+
 	//"strings"
 	"encoding/json"
 )
@@ -56,27 +59,43 @@ type Company_overview struct {
 	EVToRevenue                float64 `json:"EVToRevenue,string"`
 	EVToEBITDA                 float64 `json:"EVToEBITDA,string"`
 	Beta                       float64 `json:"Beta,string"`
-	FiftyTwoWeekHigh                float64 `json:"52WeekHigh,string"`
-	FiftyTwoWeekLow                 float64 `json:"52WeekLow,string"`
-	FiftyDayMovingAverage        float64 `json:"50DayMovingAverage,string"`
-	TwoHundredDayMovingAverage       float64 `json:"200DayMovingAverage,string"`
+	FiftyTwoWeekHigh           float64 `json:"52WeekHigh,string"`
+	FiftyTwoWeekLow            float64 `json:"52WeekLow,string"`
+	FiftyDayMovingAverage      float64 `json:"50DayMovingAverage,string"`
+	TwoHundredDayMovingAverage float64 `json:"200DayMovingAverage,string"`
 	SharesOutstanding          int64   `json:"SharesOutstanding,string"`
 	DividendDate               string  `json:"DividendDate"`
 	ExDividendDate             string  `json:"ExDividendDate"`
 }
 
+type TimeSeriesWeeklyData struct {
+	Id          int       `json:"-"`
+	Symbol      string    `json:"Symbol"`
+	Date        time.Time `json:"Date"`
+	Open_price  float64   `json:"Open_Price"`
+	High_price  float64   `json:"High_Price"`
+	Low_price   float64   `json:"Low_Price"`
+	Close_price float64   `json:"Close_Price"`
+	Volume      int64     `json:"Volume"`
+}
+
+type WeeklyTimeSeriesAPIResponse struct {
+	MetaData           map[string]string               		`json:"Meta Data"`
+	WeeklyTimeSeries map[string]map[string]string 			`json:"Weekly Time Series"`
+}
+
 type DemoResponse struct {
-	Symbol string `json:"symbol"`
+	Symbol    string `json:"symbol"`
 	AssetType string `json:"assettype"`
-	Name string `json:"name"`
+	Name      string `json:"name"`
 }
 
 func check_all_market_open_status() bool {
 	api_key := os.Getenv("apikey")
-	if api_key == ""{
+	if api_key == "" {
 		log.Fatal("Api key not found in .env file")
 	}
-	
+
 	baseUrl := "https://www.alphavantage.co/query"
 	queryParams := "?function=MARKET_STATUS&apikey=" + api_key
 	fullUrl := baseUrl + queryParams
@@ -109,7 +128,7 @@ func get_market_data() {
 
 func Get_company_overview(company_symbol string) Company_overview {
 	api_key := os.Getenv("apikey")
-	if api_key == ""{
+	if api_key == "" {
 		log.Fatal("Api key not found in .env file")
 	}
 
@@ -123,7 +142,7 @@ func Get_company_overview(company_symbol string) Company_overview {
 	queryParams_2 := "&apikey=" + api_key
 
 	fullUrl := baseUrl + queryParams_1 + queryParams_2
-	
+
 	response, err := http.Get(fullUrl)
 	if err != nil {
 		log.Fatal(err)
@@ -154,22 +173,22 @@ func Get_company_overview(company_symbol string) Company_overview {
 	address := company_overview_api_response.Address
 	officialSite := company_overview_api_response.OfficialSite
 	fiscalYearEnd := company_overview_api_response.FiscalYearEnd
-	latestQuarter := company_overview_api_response.LatestQuarter  
-	marketCapitalization := company_overview_api_response.MarketCapitalization     
-	ebitda := company_overview_api_response.EBITDA            
-	peRatio := company_overview_api_response.PERatio                   
+	latestQuarter := company_overview_api_response.LatestQuarter
+	marketCapitalization := company_overview_api_response.MarketCapitalization
+	ebitda := company_overview_api_response.EBITDA
+	peRatio := company_overview_api_response.PERatio
 	pegRatio := company_overview_api_response.PEGRatio
-	bookValue := company_overview_api_response.BookValue             
-	dividendPerShare := company_overview_api_response.DividendPerShare      
-	dividendYield := company_overview_api_response.DividendYield    
-	eps := company_overview_api_response.EPS                     
-	revenuePerShareTTM := company_overview_api_response.RevenuePerShareTTM    
+	bookValue := company_overview_api_response.BookValue
+	dividendPerShare := company_overview_api_response.DividendPerShare
+	dividendYield := company_overview_api_response.DividendYield
+	eps := company_overview_api_response.EPS
+	revenuePerShareTTM := company_overview_api_response.RevenuePerShareTTM
 	profitMargin := company_overview_api_response.ProfitMargin
 	operatingMarginTTM := company_overview_api_response.OperatingMarginTTM
 	returnOnAssetsTTM := company_overview_api_response.ReturnOnAssetsTTM
 	returnOnEquityTTM := company_overview_api_response.ReturnOnEquityTTM
 	revenueTTM := company_overview_api_response.RevenueTTM
-	grossProfitTTM := company_overview_api_response.GrossProfitTTM        
+	grossProfitTTM := company_overview_api_response.GrossProfitTTM
 	dilutedEPSTTM := company_overview_api_response.DilutedEPSTTM
 	quarterlyEarningsGrowthYOY := company_overview_api_response.QuarterlyEarningsGrowthYOY
 	quarterlyRevenueGrowthYOY := company_overview_api_response.QuarterlyRevenueGrowthYOY
@@ -192,16 +211,89 @@ func Get_company_overview(company_symbol string) Company_overview {
 	twoHundredDayMovingAverage := company_overview_api_response.TwoHundredDayMovingAverage
 	sharesOutstanding := company_overview_api_response.SharesOutstanding
 	dividendDate := company_overview_api_response.DividendDate
-	exDividendDate:= company_overview_api_response.ExDividendDate
+	exDividendDate := company_overview_api_response.ExDividendDate
 
 	return Company_overview{symbol, assetType, name, description, cik, exchange, currency, country, sector, industry, address, officialSite, fiscalYearEnd, latestQuarter, marketCapitalization, ebitda, peRatio, pegRatio, bookValue, dividendPerShare, dividendYield, eps, revenuePerShareTTM, profitMargin, operatingMarginTTM,
-	returnOnAssetsTTM, returnOnEquityTTM, revenueTTM, grossProfitTTM, dilutedEPSTTM, quarterlyEarningsGrowthYOY, quarterlyRevenueGrowthYOY, analystTargetPrice, analystRatingStrongBuy, analystRatingBuy, analystRatingHold, analystRatingSell, analystRatingStrongSell, trailingPE, forwardPE, priceToSalesRatioTTM, priceToBookRatio, evToRevenue, evToEBITDA, beta, fiftyTwoWeekHigh, fiftyTwoWeekLow, fiftyDayMovingAverage, twoHundredDayMovingAverage, sharesOutstanding, dividendDate, exDividendDate}
+		returnOnAssetsTTM, returnOnEquityTTM, revenueTTM, grossProfitTTM, dilutedEPSTTM, quarterlyEarningsGrowthYOY, quarterlyRevenueGrowthYOY, analystTargetPrice, analystRatingStrongBuy, analystRatingBuy, analystRatingHold, analystRatingSell, analystRatingStrongSell, trailingPE, forwardPE, priceToSalesRatioTTM, priceToBookRatio, evToRevenue, evToEBITDA, beta, fiftyTwoWeekHigh, fiftyTwoWeekLow, fiftyDayMovingAverage, twoHundredDayMovingAverage, sharesOutstanding, dividendDate, exDividendDate}
 
+}
+
+func Get_Time_Series_Weekly_data(company_symbol string) ([]TimeSeriesWeeklyData, error) {
+	api_key := os.Getenv("apikey")
+	if api_key == "" {
+		log.Fatal("Api key not found in .env file")
+	}
+
+	if company_symbol == "" {
+		fmt.Println("Company symbol cannot be empty")
+		os.Exit(1)
+	}
+
+	baseUrl := "https://www.alphavantage.co/query"
+	queryParams_1 := "?function=TIME_SERIES_WEEKLY&symbol=" + company_symbol
+	queryParams_2 := "&apikey=" + api_key
+
+	fullUrl := baseUrl + queryParams_1 + queryParams_2
+
+	response, err := http.Get(fullUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var timeSeriesWeeklyApiResponse WeeklyTimeSeriesAPIResponse
+	responseError := json.Unmarshal([]byte(responseData), &timeSeriesWeeklyApiResponse)
+	if responseError != nil {
+		fmt.Println("Error parsing JSON", responseError)
+		os.Exit(1)
+	}
+
+	var records []TimeSeriesWeeklyData
+
+	id := 1
+
+	for dateStr, data := range timeSeriesWeeklyApiResponse.WeeklyTimeSeries {
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			fmt.Println("Error parsing date: ", err)
+			continue
+		}
+	
+
+		symbol := timeSeriesWeeklyApiResponse.MetaData["2. Symbol"]
+		openPrice, _ := strconv.ParseFloat(data["1. open"], 64)
+		highPrice, _ := strconv.ParseFloat(data["2. high"], 64)
+		lowPrice, _ := strconv.ParseFloat(data["3. low"], 64)
+		closePrice, _ := strconv.ParseFloat(data["4. close"], 64)
+		volume, _ := strconv.ParseInt(data["5. volume"], 10, 64)
+
+		// Create record
+		record := TimeSeriesWeeklyData{
+			Id:         id,
+			Symbol:     symbol,
+			Date:       date,
+			Open_price:  openPrice,
+			High_price:  highPrice,
+			Low_price:   lowPrice,
+			Close_price: closePrice,
+			Volume:     volume,
+		}
+
+		records = append(records, record)
+		id++
+	}
+
+	return records, err		
 }
 
 func Demo_company_overview(company_symbol string) []string {
 	api_key := os.Getenv("apikey")
-	if api_key == ""{
+	if api_key == "" {
 		log.Fatal("Api key not found in .env file")
 	}
 
@@ -215,13 +307,12 @@ func Demo_company_overview(company_symbol string) []string {
 	queryParams_2 := "&apikey=" + api_key
 
 	fullUrl := baseUrl + queryParams_1 + queryParams_2
-	
+
 	response, err := http.Get(fullUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer response.Body.Close()
-
 
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {

@@ -207,3 +207,35 @@ func Insert_Company_Overview_data(comp string) (string, error) {
 	return company.Symbol, nil
 	
 }
+
+func Insert_Time_Series_Weekly_data(comp string) (string, error) {
+	db_connection_pointer, error := ConnectDB()
+	if error != nil {
+		log.Fatal(error)
+	}
+	//var id int64
+
+	company, geterror := pkg.Get_Time_Series_Weekly_data(comp)
+	if geterror != nil {
+		fmt.Println("There has been some error: ", geterror)
+		log.Fatal(geterror)
+	}
+
+	query := `INSERT INTO time_series_weekly (Symbol, Date, Open_Price, High_Price, Low_Price, Close_Price, volume) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	//executing the query with struct values
+	if len(company) > 0 {
+		firstRecord := company[0]
+		_, err := db_connection_pointer.Exec(query,
+			firstRecord.Symbol, firstRecord.Date, firstRecord.Open_price, firstRecord.High_price, firstRecord.Low_price, firstRecord.Close_price, firstRecord.Volume,
+		)
+	
+		if err != nil {
+			log.Fatalf("Failed to insert data %v", err)
+		}
+	}	
+
+	//fmt.Println("Data inserted successfully!")
+	return "data inserted successfully", nil
+	
+}

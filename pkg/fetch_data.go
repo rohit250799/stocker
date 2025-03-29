@@ -79,9 +79,9 @@ type TimeSeriesWeeklyData struct {
 	Volume      int64     `json:"Volume"`
 }
 
-type Weekly_Time_Series_API_Response struct {
-	MetaData           map[string]string               `json:"Meta Data"`
-	Weekly_Time_Series map[string]map[string]string 			`json:"Weekly Time Series"`
+type WeeklyTimeSeriesAPIResponse struct {
+	MetaData           map[string]string               		`json:"Meta Data"`
+	WeeklyTimeSeries map[string]map[string]string 			`json:"Weekly Time Series"`
 }
 
 type DemoResponse struct {
@@ -218,7 +218,7 @@ func Get_company_overview(company_symbol string) Company_overview {
 
 }
 
-func Get_Time_Series_Weekly_data(company_symbol string) TimeSeriesWeeklyData {
+func Get_Time_Series_Weekly_data(company_symbol string) ([]TimeSeriesWeeklyData, error) {
 	api_key := os.Getenv("apikey")
 	if api_key == "" {
 		log.Fatal("Api key not found in .env file")
@@ -246,69 +246,49 @@ func Get_Time_Series_Weekly_data(company_symbol string) TimeSeriesWeeklyData {
 		log.Fatal(err)
 	}
 
-	var timeSeriesWeeklyApiResponse Weekly_Time_Series_API_Response
-	err = json.Unmarshal([]byte(responseData), &timeSeriesWeeklyApiResponse)
-	if err != nil {
-		fmt.Println("Error parsing JSON", err)
+	var timeSeriesWeeklyApiResponse WeeklyTimeSeriesAPIResponse
+	responseError := json.Unmarshal([]byte(responseData), &timeSeriesWeeklyApiResponse)
+	if responseError != nil {
+		fmt.Println("Error parsing JSON", responseError)
+		os.Exit(1)
 	}
 
-	id := 0
-	symbol := timeSeriesWeeklyApiResponse.MetaData["2. Symbol"]
-	date := timeSeriesWeeklyApiResponse.MetaData["3. Date"]
-	open_price := timeSeriesWeeklyApiResponse.MetaData["4. Open Price"]
-	high_price := timeSeriesWeeklyApiResponse.MetaData["5. High Price"]
-	low_price := timeSeriesWeeklyApiResponse.MetaData["6. Low Price"]
-	close_price := timeSeriesWeeklyApiResponse.MetaData["7. Close Price"]
-	volume := timeSeriesWeeklyApiResponse.MetaData["8. Volume"]
+	var records []TimeSeriesWeeklyData
 
-	//layout := "2006-03-27"
-	parseDate := time.Now()
-	if date != "" {
-		var err error
-		parseDate, err = time.Parse("2006-01-02", date)
+	id := 1
+
+	for dateStr, data := range timeSeriesWeeklyApiResponse.WeeklyTimeSeries {
+		date, err := time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			fmt.Println("Error parsing date: ", err)
-			return TimeSeriesWeeklyData{}
+			continue
 		}
-	}
-	// parseDate, err := time.Parse(layout, date)
-	// if err != nil {
-	// 	fmt.Println("Error parsing date: ", err)
-	// 	return TimeSeriesWeeklyData{}
-	// }
+	
 
-	openPrice, err := strconv.ParseFloat(open_price, 64)
-	if err != nil {
-		fmt.Println("Error parsing open price: ", err)
-		return TimeSeriesWeeklyData{}
-	}
+		symbol := timeSeriesWeeklyApiResponse.MetaData["2. Symbol"]
+		openPrice, _ := strconv.ParseFloat(data["1. open"], 64)
+		highPrice, _ := strconv.ParseFloat(data["2. high"], 64)
+		lowPrice, _ := strconv.ParseFloat(data["3. low"], 64)
+		closePrice, _ := strconv.ParseFloat(data["4. close"], 64)
+		volume, _ := strconv.ParseInt(data["5. volume"], 10, 64)
 
-	highPrice, err := strconv.ParseFloat(high_price, 64)
-	if err != nil {
-		fmt.Println("Error parsing high price: ", err)
-		return TimeSeriesWeeklyData{}
-	}
+		// Create record
+		record := TimeSeriesWeeklyData{
+			Id:         id,
+			Symbol:     symbol,
+			Date:       date,
+			Open_price:  openPrice,
+			High_price:  highPrice,
+			Low_price:   lowPrice,
+			Close_price: closePrice,
+			Volume:     volume,
+		}
 
-	lowPrice, err := strconv.ParseFloat(low_price, 64)
-	if err != nil {
-		fmt.Println("Error parsing low price: ", err)
-		return TimeSeriesWeeklyData{}
-	}
-
-	closePrice, err := strconv.ParseFloat(close_price, 64)
-	if err != nil {
-		fmt.Println("Error parsing close price: ", err)
-		return TimeSeriesWeeklyData{}
+		records = append(records, record)
+		id++
 	}
 
-	volumeInt, err := strconv.ParseInt(volume, 10, 64)
-	if err != nil {
-		fmt.Println("Error parsing volume: ", volumeInt)
-		return TimeSeriesWeeklyData{}
-	}
-
-
-	return TimeSeriesWeeklyData{id, symbol, parseDate, openPrice, highPrice, lowPrice, closePrice, volumeInt}
+	return records, err		
 }
 
 func Demo_company_overview(company_symbol string) []string {

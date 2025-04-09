@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 	"strconv"
+	"time"
 
 	//"strings"
 	"encoding/json"
@@ -72,10 +72,10 @@ type TimeSeriesWeeklyData struct {
 	Id          int       `json:"-"`
 	Symbol      string    `json:"Symbol"`
 	Date        time.Time `json:"Date"`
-	Open_price  float64   `json:"Open_Price"`
-	High_price  float64   `json:"High_Price"`
-	Low_price   float64   `json:"Low_Price"`
-	Close_price float64   `json:"Close_Price"`
+	OpenPrice  float64   `json:"Open_Price"`
+	HighPrice  float64   `json:"High_Price"`
+	LowPrice   float64   `json:"Low_Price"`
+	ClosePrice float64   `json:"Close_Price"`
 	Volume      int64     `json:"Volume"`
 }
 
@@ -255,8 +255,6 @@ func Get_Time_Series_Weekly_data(company_symbol string) ([]TimeSeriesWeeklyData,
 
 	var records []TimeSeriesWeeklyData
 
-	id := 1
-
 	for dateStr, data := range timeSeriesWeeklyApiResponse.WeeklyTimeSeries {
 		date, err := time.Parse("2006-01-02", dateStr)
 		if err != nil {
@@ -272,23 +270,21 @@ func Get_Time_Series_Weekly_data(company_symbol string) ([]TimeSeriesWeeklyData,
 		closePrice, _ := strconv.ParseFloat(data["4. close"], 64)
 		volume, _ := strconv.ParseInt(data["5. volume"], 10, 64)
 
-		// Create record
+		// Create record for db
 		record := TimeSeriesWeeklyData{
-			Id:         id,
 			Symbol:     symbol,
 			Date:       date,
-			Open_price:  openPrice,
-			High_price:  highPrice,
-			Low_price:   lowPrice,
-			Close_price: closePrice,
+			OpenPrice:  openPrice,
+			HighPrice:  highPrice,
+			LowPrice:   lowPrice,
+			ClosePrice: closePrice,
 			Volume:     volume,
 		}
 
 		records = append(records, record)
-		id++
 	}
-
-	return records, err		
+	return records, err	
+		
 }
 
 func Demo_company_overview(company_symbol string) []string {

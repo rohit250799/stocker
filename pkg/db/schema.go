@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-stocker/pkg"
 	"log"
+	"strings"
 )
 
 //for PG-admin
@@ -209,11 +210,10 @@ func Insert_Company_Overview_data(comp string) (string, error) {
 }
 
 func Insert_Time_Series_Weekly_data(comp string) (string, error) {
-	db_connection_pointer, error := ConnectDB()
+	dbConnectionPointer, error := ConnectDB()
 	if error != nil {
 		log.Fatal(error)
 	}
-	//var id int64
 
 	company, geterror := pkg.Get_Time_Series_Weekly_data(comp)
 	if geterror != nil {
@@ -221,21 +221,35 @@ func Insert_Time_Series_Weekly_data(comp string) (string, error) {
 		log.Fatal(geterror)
 	}
 
-	query := `INSERT INTO time_series_weekly (Symbol, Date, Open_Price, High_Price, Low_Price, Close_Price, volume) VALUES ($1, $2, $3, $4, $5, $6, $7)`
-
-	//executing the query with struct values
-	if len(company) > 0 {
-		firstRecord := company[0]
-		_, err := db_connection_pointer.Exec(query,
-			firstRecord.Symbol, firstRecord.Date, firstRecord.Open_price, firstRecord.High_price, firstRecord.Low_price, firstRecord.Close_price, firstRecord.Volume,
-		)
+	valueStrings := []string{}
+	valueArgs := []interface{}{}
+	i := 1
 	
-		if err != nil {
-			log.Fatalf("Failed to insert data %v", err)
-		}
-	}	
+	for _, rec := range company {
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d)", i, i+1, i+2, i+3, i+4, i+5, i+6))
+		valueArgs = append(valueArgs,
+			rec.Symbol,
+			rec.Date,
+			rec.OpenPrice,
+			rec.HighPrice, 
+			rec.LowPrice, 
+			rec.ClosePrice,
+			rec.Volume,
+		)
+		i += 7
+	}
 
-	//fmt.Println("Data inserted successfully!")
+	query := fmt.Sprintf(
+		`INSERT INTO time_series_weekly (Symbol, Date, Open_Price, High_Price, Low_Price, Close_Price, Volume) VALUES %s`,
+		strings.Join(valueStrings, ","),
+
+	)
+	
+	_, err := dbConnectionPointer.Exec(query, valueArgs...)
+	if err != nil {
+		log.Fatalf("Failed to bulk insert data %v", err)
+	}
+
 	return "data inserted successfully", nil
 	
 }

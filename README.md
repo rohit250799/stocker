@@ -14,6 +14,3 @@ An application to get stock market insights for fundamental and technical analys
 
 - Finish the necessary setup for docker and run your container using the command: docker compose up
 - Install the necessary dependencies using: go mod tidy command
-
- 
-

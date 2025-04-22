@@ -152,14 +152,14 @@ func CreateTimeSeriesWeeklyTable(db *sql.DB) error {
 
 	query := fmt.Sprintf(`
 	CREATE TABLE IF NOT EXISTS %s (
-		id SERIAL PRIMARY KEY,
 		symbol TEXT NOT NULL,
 		date DATE NOT NULL,
 		open_price NUMERIC(10, 4),
 		high_price NUMERIC(10, 4),
 		low_price NUMERIC(10, 4),
 		close_price NUMERIC(10, 4),
-		volume BIGINT
+		volume BIGINT,
+		PRIMARY KEY (symbol, date)
 	);`, getTableName)
 
 	_, err := db.Exec(query);

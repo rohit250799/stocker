@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	//"net/http"
+	//"strconv"
+
 	//"os"
 
 	//"html/template"
 	//"templates"
 
 	//"github.com/gorilla/mux"
-	"github.com/a-h/templ"
+	//"github.com/a-h/templ"
 	"github.com/joho/godotenv"
 
 	"go-stocker/pkg/db"
@@ -22,10 +26,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-//for PG-admin
+// for PG-admin
 type User struct {
-    Name string `db:"username"`
-    Email string `db:"email"`
+	Name  string `db:"username"`
+	Email string `db:"email"`
 }
 
 // templates map to store pre-parsed templates
@@ -33,56 +37,61 @@ type User struct {
 
 func main() {
 
-    //to find the .env file
-    err := godotenv.Load("../../.env")
-    if err != nil {
-        log.Fatalf("Error loading to .env file: %s", err)
-    }
+	//to find the .env file
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		log.Fatalf("Error loading to .env file: %s", err)
+	}
 
-    //connect to db 
+	//connect to db
 
-    db_connect, err := db.ConnectDB();
-    if err != nil {
-        fmt.Println("Error connecting to database:", err)
-        return
-    }
+	db_connect, err := db.ConnectDB()
+	if err != nil {
+		fmt.Println("Error connecting to database:", err)
+		return
+	}
 
-    //creating time series weekly table
-    //db.CreateTimeSeriesWeeklyTable(db_connect)
+	//creating time series weekly table
+	//db.CreateTimeSeriesWeeklyTable(db_connect)
 
-    defer db_connect.Close()
+	// //for the pages
+	p1 := &Page{Title: "TestPage", Body: []byte("This is a sample page")}
+	p1.save()
+	p2, _ := LoadPage("TestPage")
+	fmt.Println(string(p2.Body))
 
-    // //get_market_data -> relevant statements starts, to be uncommented after this
+    http.HandleFunc("/", Handler)
+    log.Fatal(http.ListenAndServe(":8080", nil))
 
-    // var company_symbol string
-    // fmt.Println("Enter the company symbol to use: ") 
-    // fmt.Scan(&company_symbol)
+	defer db_connect.Close()
 
-    // // //Inserting company overview to db
+	//get_market_data -> relevant statements starts, to be uncommented after this
 
-    // company, err := db.Insert_Company_Overview_data(company_symbol)
-    // if err != nil {
-    //     log.Fatal(err)
-    // }
-    // fmt.Printf("The entered symbol is: %v", company)
+	var company_symbol string
+	fmt.Println("Enter the company symbol to use: ")
+	fmt.Scan(&company_symbol)
 
-    
+	// //Inserting company overview to db
 
+	company, err := db.Insert_Company_Overview_data(company_symbol)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("The entered symbol is: %v", company)
 
-    // //Insert weekly series data to db
-    // company_weekly_data, err := db.Insert_Time_Series_Weekly_data(company_symbol)
-    // if err != nil {
-    //     log.Fatal(err)
-    // }
-    // fmt.Printf("The weekly timeseries is entered on: %v", company_weekly_data)  -> relevant statements, to be uncommented after this
-	
-	http.Handle("/", templ.Handler(LandingPage()))
+	//Insert weekly series data to db
+	company_weekly_data, err := db.Insert_Time_Series_Weekly_data(company_symbol)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("The weekly timeseries is entered on: %v", company_weekly_data) //-> relevant statements, to be uncommented after this
 
-	fmt.Println("Listening on :3000")
-	http.ListenAndServe(":3000", nil)
+	// http.Handle("/", templ.Handler(LandingPage()))
 
-    //templates.RegisterButton("Register").Render(context.Background(), os.Stdout)
-    //templates.LoginButton("Login").Render(context.Background(), os.Stdout)
+	// fmt.Println("Listening on :3000")
+	// http.ListenAndServe(":3000", nil)
+
+	//templates.RegisterButton("Register").Render(context.Background(), os.Stdout)
+	//templates.LoginButton("Login").Render(context.Background(), os.Stdout)
 
 }
-

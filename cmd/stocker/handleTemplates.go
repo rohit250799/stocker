@@ -5,30 +5,34 @@ import (
 	// "net/http"
 	// "path/filepath"
 	//"go-stocker/templates"
+	"fmt"
+	"net/http"
 	"os"
-
 	//"context"
 )
 
-
 type Page struct {
-	Title	string
-	Body	[]byte
+	Title string
+	Body  []byte
 }
 
-//handling persistent storage
-func (p *Page) save() error { 
+// handling persistent storage
+func (p *Page) save() error {
 	filename := p.Title + ".txt"
 	return os.WriteFile(filename, p.Body, 0600)
 }
 
-func loadPage(title string) (*Page, error) {
+func LoadPage(title string) (*Page, error) {
 	filename := title + ".txt"
 	body, err := os.ReadFile(filename)
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 	return &Page{Title: title, Body: body}, nil
+}
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there, I love %s", r.URL.Path[1:])
 }
 
 // func LoginButtonLandingPage() templ.Component {

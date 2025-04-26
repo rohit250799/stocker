@@ -75,20 +75,6 @@ func main() {
     //     log.Fatal(err)
     // }
     // fmt.Printf("The weekly timeseries is entered on: %v", company_weekly_data)  -> relevant statements, to be uncommented after this
-
-
-    //for the frontend
-    // LoadTemplates()
-
-    // fs := http.FileServer(http.Dir("/.static"))
-    // http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-    // http.HandleFunc("/", HomeHandler)
-    // http.HandleFunc("/about", AboutHandler)
-
-    // http.ListenAndServe(":8080", nil)
-
-    //component := templates.Hello("Rohit")
 	
 	http.Handle("/", templ.Handler(LandingPage()))
 

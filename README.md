@@ -1,6 +1,6 @@
 # Stocker
 
-An application to get stock market insights for fundamental and technical analysis.
+An tool to get stock market insights for fundamental and technical analysis in US markets.
 
 ## Installation
 
@@ -14,3 +14,11 @@ An application to get stock market insights for fundamental and technical analys
 
 - Finish the necessary setup for docker and run your container using the command: docker compose up
 - Install the necessary dependencies using: go mod tidy command
+
+## Usage:
+
+ - When the database is succesfully running in the docker container, the user can start to fetch data
+ - first build using the command:  ** go build cmd/stocker/*.go **
+ - then, run the tool using the command: ** go run cmd/stocker/*.go **
+
+

@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -14,7 +15,7 @@ type Page struct {
 }
 
 var templates = template.Must(template.ParseGlob(
-	"templates/layouts/*.html",
+	"./templates/layouts/*.html",
 ))
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -34,11 +35,7 @@ func loadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s", r.URL.Path[1:])
-}
-
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+func MakeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
@@ -50,12 +47,34 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	// path := "templates/layouts/" + tmpl + ".html"
 	err := templates.ExecuteTemplate(w, tmpl, p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+}
+
+// func homeHandler(w http.ResponseWriter, r *http.Request) {
+// 	title := r.URL.Query().Get("title")
+// 	body := r.URL.Query().Get("body")
+
+// }
+
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	tmplPath := filepath.Join("templates", "pages", "index.html")
+
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Unable to load template", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, "Error executing template", http.StatusInternalServerError)
+		log.Println("Template execution error:", err)
+	}
 }
 
 func ViewHandler(w http.ResponseWriter, r *http.Request, title string) {

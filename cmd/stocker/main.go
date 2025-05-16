@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"go-stocker/pkg/db"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	//"github.com/gorilla/mux"
+
+
 	"github.com/joho/godotenv"
-	"go-stocker/pkg/db"
 	_ "github.com/lib/pq"
 )
 
@@ -17,16 +20,15 @@ type User struct {
 	Email string `db:"email"`
 }
 
-
 func main() {
 
 	//to find the .env file
 	cwd, _ := os.Getwd()
-    log.Println("Current working directory:", cwd)
-    err := godotenv.Load(filepath.Join(cwd, ".env"))
-    if err != nil {
-        log.Printf("Error loading .env file: %v", err)
-    }
+	log.Println("Current working directory:", cwd)
+	err := godotenv.Load(filepath.Join(cwd, ".env"))
+	if err != nil {
+		log.Printf("Error loading .env file: %v", err)
+	}
 
 	//connect to db
 	db_connect, err := db.ConnectDB()
@@ -54,11 +56,18 @@ func main() {
 	}
 	fmt.Printf("The weekly timeseries is entered on: %v", company_weekly_data)
 
-	http.HandleFunc("/view/", makeHandler(ViewHandler))
-	http.HandleFunc("/edit/", makeHandler(EditHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
-	fmt.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	//r := mux.NewRouter()
+	
+
+	fileserver := http.FileServer(http.Dir("./templates/layouts"))
+
+
+	http.Handle("/", fileserver)
+	http.HandleFunc("/view/", MakeHandler(ViewHandler))
+	http.HandleFunc("/edit/", MakeHandler(EditHandler))
+	http.HandleFunc("/save/", MakeHandler(saveHandler))
+	fmt.Println("port running on http://localhost:8081/")
+	log.Fatal(http.ListenAndServe(":8081", nil))
 
 	defer db_connect.Close()
 }
